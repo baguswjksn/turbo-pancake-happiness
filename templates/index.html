@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKD CPNS WRITE UP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-white text-gray-900">
+  <div class="container mx-auto max-w-4xl px-4 py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-4">
+        <a href="/" class="text-inherit no-underline">Daftar Tulis Ulang</a>
+      </h1>
+
+      <form method="GET" action="" class="mb-6 space-y-4">
+        <div class="flex flex-wrap gap-4 items-center">
+          <div class="flex items-center space-x-2">
+            <label for="category">Category:</label>
+            <select name="category" id="category" class="border border-gray-700 px-2 py-1 bg-white">
+              <option value="">All</option>
+              <option value="TIU" {{if eq .Category "TIU" }}selected{{end}}>TIU</option>
+              <option value="TWK" {{if eq .Category "TWK" }}selected{{end}}>TWK</option>
+              <option value="TKP" {{if eq .Category "TKP" }}selected{{end}}>TKP</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <label for="type">Type:</label>
+            <select name="type" id="type" class="border border-gray-700 px-2 py-1 bg-white">
+              <option value="">All</option>
+              <option value="Deret Angka" {{if eq .Type "Deret Angka" }}selected{{end}}>Deret Angka</option>
+              <option value="Verbal Analogi" {{if eq .Type "Verbal Analogi" }}selected{{end}}>Verbal Analogi</option>
+              <option value="Silogisme" {{if eq .Type "Silogisme" }}selected{{end}}>Silogisme</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <label for="search">Search:</label>
+            <input type="text" name="search" id="search" class="border border-gray-700 px-2 py-1 bg-white"
+              value="{{.Search}}">
+          </div>
+
+          <button type="submit" class="border border-gray-700 px-4 py-1 hover:bg-gray-100">
+            Filter
+          </button>
+        </div>
+      </form>
+    </header>
+
+    <main>
+      <ul class="space-y-6">
+        {{if gt (len .Questions) 0}}
+        {{range .Questions}}
+        <li class="border-b pb-6">
+          <div>
+            <h3 class="text-xl font-semibold mb-2">
+              <a href="/q/{{.Hash_ID}}" class="text-gray-800 hover:underline">
+                {{.Question}}
+              </a>
+              <span class="bg-purple-200 text-sm px-2 py-1 ml-2">{{.Category}}</span>
+            </h3>
+            <p class="mb-2">Type: {{.Type}}</p>
+          </div>
+        </li>
+        {{end}}
+        {{else}}
+        <li class="text-center text-gray-500">No questions found.</li>
+        {{end}}
+      </ul>
+
+
+
+      <!-- Pagination -->
+      <div class="pagination mt-8 flex justify-center space-x-2">
+        {{if gt .Page 1}}
+        <a href="?page={{sub .Page 1}}{{with .Category}}&category={{.}}{{end}}{{with .Type}}&type={{.}}{{end}}{{with .Search}}&search={{.}}{{end}}"
+          class="border border-gray-700 px-3 py-1 hover:bg-gray-100">Previous</a>
+        {{end}}
+
+        <span class="border border-gray-700 px-3 py-1 bg-gray-800 text-white">{{.Page}}</span>
+
+        {{if eq (len .Questions) .PageSize}}
+        <a href="?page={{add .Page 1}}{{with .Category}}&category={{.}}{{end}}{{with .Type}}&type={{.}}{{end}}{{with .Search}}&search={{.}}{{end}}"
+          class="border border-gray-700 px-3 py-1 hover:bg-gray-100">Next</a>
+        {{end}}
+      </div>
+    </main>
+  </div>
+</body>
+
+</html>
