@@ -1,66 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Flash Card</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50">
-  <div class="container mx-auto max-w-xl px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8 text-gray-800">FLASH CARD</h1>
-
-    {{ if .Question }}
-    <div class="border border-gray-200 rounded-lg p-6 mb-6 bg-white shadow-md">
-      <div class="flex gap-2 mb-4">
-        <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
-          {{ .Question.Category }}
-        </span>
-        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-sm">
-          {{ .Question.Type }}
-        </span>
-      </div>
-      
-      <h3 class="text-xl text-gray-700 mb-6">
-        {{ .Question.Question }}
-      </h3>
-
-      <button id="toggleAnswer" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
-        Show Answer
-      </button>
-
-      <div id="answerContainer" class="hidden mt-4">
-        <div class="bg-green-100 p-4 rounded border border-green-200">
-          <p class="text-green-800">{{ .Question.Answer }}</p>
-        </div>
-        
-        <div class="mt-4 text-gray-600">
-          <p class="font-semibold mb-2">Explanation:</p>
-          <p>{{ .Question.Explanation }}</p>
-        </div>
-      </div>
-    </div>
-    {{ else }}
-    <div class="border border-red-200 rounded-lg p-6 bg-white shadow-md">
-      <p class="text-red-600">No flash cards available at the moment.</p>
-    </div>
-    {{ end }}
-
-    <div class="flex gap-4">
-      <button onclick="history.back()" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors">
-        Back
-      </button>
-      <button onclick="window.location.reload()" class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
-        Next
-      </button>
-    </div>
-  </div>
 
   <script>
-    document.getElementById('toggleAnswer')?.addEventListener('click', function() {
-      const answerContainer = document.getElementById('answerContainer');
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            blackGradientStart: '#000000',
+            blackGradientEnd: '#444444',
+          },
+          spacing: {
+            '14': '3.5rem',
+            '10': '2.5rem',
+            '6': '1.5rem',
+          },
+        },
+      },
+      plugins: [tailwindTypography],
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+  <!-- KaTeX Styles -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+
+  <!-- KaTeX Script -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false }
+      ]
+    });"
+  ></script>
+
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+<main class="w-full max-w-4xl bg-white rounded-lg p-10">
+    <h1 class="text-4xl font-extrabold mb-10 text-gray-900 text-center">FLASH CARD</h1>
+
+    {{ if .Question }}
+  <article class="border border-gray-200 rounded-lg p-8 mb-8">
+      <header class="flex flex-wrap gap-3 mb-6 justify-center sm:justify-start">
+        <span class="px-4 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+          {{ .Question.Category }}
+        </span>
+        <span class="px-4 py-1 rounded-full bg-purple-100 text-purple-800 text-sm font-medium">
+          {{ .Question.Type }}
+        </span>
+      </header>
+
+      <section>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 leading-relaxed">
+          {{ .Question.Question }}
+        </h2>
+
+        <button
+          id="toggleAnswer"
+          class="block mx-auto sm:mx-0 bg-gray-900 text-white px-6 py-3 rounded-md hover:bg-gray-800 transition-colors font-semibold"
+          type="button"
+          aria-expanded="false"
+          aria-controls="answerContainer"
+        >
+          Show Answer
+        </button>
+
+        <div id="answerContainer" class="hidden mt-6 max-w-none">
+          <div class="bg-green-100 p-6 rounded border border-green-300 shadow-inner">
+            <p class="text-green-900 text-lg font-medium">{{ .Question.Answer }}</p>
+          </div>
+
+          <div class="mt-6 prose prose-gray max-w-none">
+            <h3 class="font-semibold mb-3">Explanation:</h3>
+            {{ .Question.Explanation }}
+          </div>
+        </div>
+      </section>
+    </article>
+    {{ else }}
+    <section class="border border-red-300 rounded-lg p-6 bg-white shadow-md text-center">
+      <p class="text-red-600 text-lg font-semibold">No flash cards available at the moment.</p>
+    </section>
+    {{ end }}
+
+    <nav class="flex justify-center gap-6 mt-4">
+      <button
+        onclick="history.back()"
+        class="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors font-medium"
+        type="button"
+      >
+        Back
+      </button>
+      <button
+        onclick="window.location.reload()"
+        class="px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
+        type="button"
+      >
+        Next
+      </button>
+    </nav>
+  </main>
+
+  <script>
+    const toggleBtn = document.getElementById('toggleAnswer');
+    const answerContainer = document.getElementById('answerContainer');
+
+    toggleBtn?.addEventListener('click', () => {
       const isHidden = answerContainer.classList.toggle('hidden');
-      this.textContent = isHidden ? 'Show Answer' : 'Hide Answer';
+      toggleBtn.textContent = isHidden ? 'Show Answer' : 'Hide Answer';
+      toggleBtn.setAttribute('aria-expanded', !isHidden);
     });
   </script>
 </body>

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/yuin/goldmark"
 
 	"github.com/gin-gonic/gin"
 	_ "modernc.org/sqlite"
@@ -18,8 +21,16 @@ type Question struct {
 	Answer      string
 	Category    string
 	Type        string
-	Explanation string
+	Explanation template.HTML
 	Hash_ID     string
+}
+
+func parseMarkdown(md string) template.HTML {
+	var buf bytes.Buffer
+	if err := goldmark.Convert([]byte(md), &buf); err != nil {
+		return template.HTML(template.HTMLEscapeString(md)) // fallback to escaped text
+	}
+	return template.HTML(buf.String())
 }
 
 func main() {
@@ -132,8 +143,9 @@ func main() {
 
 		row := db.QueryRow(query)
 
+		var rawExplanation string
 		var q Question
-		err := row.Scan(&q.ID, &q.Question, &q.Answer, &q.Category, &q.Type, &q.Explanation)
+		err := row.Scan(&q.ID, &q.Question, &q.Answer, &q.Category, &q.Type, &rawExplanation)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.HTML(http.StatusOK, "flash.html", gin.H{
@@ -144,6 +156,7 @@ func main() {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
+		q.Explanation = parseMarkdown(rawExplanation)
 
 		c.HTML(http.StatusOK, "flash.html", gin.H{
 			"Question": q,
@@ -156,8 +169,10 @@ func main() {
 		query := "SELECT hash_id, question, answer, explanation, category, type FROM skd_writeup WHERE hash_id = ? AND is_public = 1"
 		row := db.QueryRow(query, hashID)
 
+		var rawExplanation string
 		var q Question
-		err := row.Scan(&q.Hash_ID, &q.Question, &q.Answer, &q.Explanation, &q.Category, &q.Type)
+
+		err := row.Scan(&q.Hash_ID, &q.Question, &q.Answer, &rawExplanation, &q.Category, &q.Type)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.HTML(http.StatusNotFound, "question.html", gin.H{
@@ -168,6 +183,8 @@ func main() {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		q.Explanation = parseMarkdown(rawExplanation)
 
 		c.HTML(http.StatusOK, "question.html", gin.H{
 			"Question": q,
