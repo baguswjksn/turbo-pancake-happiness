@@ -17,8 +17,8 @@ import (
 
 type Question struct {
 	ID          int
-	Question    string
-	Answer      string
+	Question    template.HTML
+	Answer      template.HTML
 	Category    string
 	Type        string
 	Explanation template.HTML
@@ -42,6 +42,13 @@ func main() {
 		"add": func(a, b int) int { return a + b },
 		"sub": func(a, b int) int { return a - b },
 	}
+
+	r.GET("/favicon.svg", func(c *gin.Context) {
+		c.File("./static/favicon.svg")
+	})
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("./static/favicon.svg") // fallback to svg
+	})
 
 	// Load template dengan FuncMap
 	r.SetFuncMap(funcMap)
@@ -169,10 +176,10 @@ func main() {
 		query := "SELECT hash_id, question, answer, explanation, category, type FROM skd_writeup WHERE hash_id = ? AND is_public = 1"
 		row := db.QueryRow(query, hashID)
 
-		var rawExplanation string
+		var rawQuestion, rawAnswer, rawExplanation string
 		var q Question
 
-		err := row.Scan(&q.Hash_ID, &q.Question, &q.Answer, &rawExplanation, &q.Category, &q.Type)
+		err := row.Scan(&q.Hash_ID, &rawQuestion, &rawAnswer, &rawExplanation, &q.Category, &q.Type)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.HTML(http.StatusNotFound, "question.html", gin.H{
@@ -184,6 +191,9 @@ func main() {
 			return
 		}
 
+		// Parse all markdown content
+		q.Question = parseMarkdown(rawQuestion)
+		q.Answer = parseMarkdown(rawAnswer)
 		q.Explanation = parseMarkdown(rawExplanation)
 
 		c.HTML(http.StatusOK, "question.html", gin.H{

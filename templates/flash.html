@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flash Card</title>
+  <title>Flash Card - Tulis Ulang</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
 
   <script>
     tailwind.config = {
@@ -30,24 +33,19 @@
 
   <!-- KaTeX Script -->
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script
-    defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    onload="renderMathInElement(document.body, {
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
       delimiters: [
         { left: '$$', right: '$$', display: true },
         { left: '$', right: '$', display: false }
       ]
-    });"
-  ></script>
+    });"></script>
 
-</head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
-<main class="w-full max-w-4xl bg-white rounded-lg p-10">
+<body class="min-h-screen flex items-center justify-center p-6">
+  <main class="w-full max-w-4xl bg-white rounded-lg p-10">
     <h1 class="text-4xl font-extrabold mb-10 text-gray-900 text-center">FLASH CARD</h1>
 
     {{ if .Question }}
-  <article class="border border-gray-200 rounded-lg p-8 mb-8">
+    <article class="border border-gray-200 rounded-lg p-8 mb-8">
       <header class="flex flex-wrap gap-3 mb-6 justify-center sm:justify-start">
         <span class="px-4 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
           {{ .Question.Category }}
@@ -62,13 +60,9 @@
           {{ .Question.Question }}
         </h2>
 
-        <button
-          id="toggleAnswer"
+        <button id="toggleAnswer"
           class="block mx-auto sm:mx-0 bg-gray-900 text-white px-6 py-3 rounded-md hover:bg-gray-800 transition-colors font-semibold"
-          type="button"
-          aria-expanded="false"
-          aria-controls="answerContainer"
-        >
+          type="button" aria-expanded="false" aria-controls="answerContainer">
           Show Answer
         </button>
 
@@ -91,18 +85,14 @@
     {{ end }}
 
     <nav class="flex justify-center gap-6 mt-4">
-      <button
-        onclick="history.back()"
+      <button onclick="history.back()"
         class="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors font-medium"
-        type="button"
-      >
+        type="button">
         Back
       </button>
-      <button
-        onclick="window.location.reload()"
+      <button onclick="window.location.reload()"
         class="px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium"
-        type="button"
-      >
+        type="button">
         Next
       </button>
     </nav>
@@ -119,4 +109,5 @@
     });
   </script>
 </body>
+
 </html>
