@@ -8,32 +8,32 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 </head>
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            blackGradientStart: '#000000',
-            blackGradientEnd: '#444444',
-          },
-          spacing: {
-            '14': '3.5rem',
-            '10': '2.5rem',
-            '6': '1.5rem',
-          },
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          blackGradientStart: '#000000',
+          blackGradientEnd: '#444444',
+        },
+        spacing: {
+          '14': '3.5rem',
+          '10': '2.5rem',
+          '6': '1.5rem',
         },
       },
-      plugins: [tailwindTypography],
-    };
-  </script>
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    },
+    plugins: [tailwindTypography],
+  };
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=typography"></script>
 
-  <!-- KaTeX Styles -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+<!-- KaTeX Styles -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
 
-  <!-- KaTeX Script -->
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
+<!-- KaTeX Script -->
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
       delimiters: [
         { left: '$$', right: '$$', display: true },
         { left: '$', right: '$', display: false }
@@ -42,7 +42,35 @@
 
 <body class="min-h-screen flex items-center justify-center p-6">
   <main class="w-full max-w-4xl bg-white rounded-lg p-10">
-    <h1 class="text-4xl font-extrabold mb-10 text-gray-900 text-center">FLASH CARD</h1>
+    <h1 class="text-4xl font-extrabold mb-4 text-gray-900 text-center">FLASH CARD</h1>
+
+    <!-- Monochrome Filter Form -->
+    <form method="GET" action="/f" class="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+      <div>
+        <label for="category" class="block mb-1 font-medium text-black">Category</label>
+        <select id="category" name="category" class="w-full border border-black rounded-md p-2 bg-white text-black">
+          <option value="">All</option>
+          <option value="TWK" {{ if eq .Query.Category "TWK" }}selected{{ end }}>TWK</option>
+          <option value="TIU" {{ if eq .Query.Category "TIU" }}selected{{ end }}>TIU</option>
+          <option value="TKP" {{ if eq .Query.Category "TKP" }}selected{{ end }}>TKP</option>
+        </select>
+      </div>
+      <div>
+        <label for="type" class="block mb-1 font-medium text-black">Type</label>
+        <select id="type" name="type" class="w-full border border-black rounded-md p-2 bg-white text-black">
+          <option value="">All</option>
+          <option value="PilihanGanda" {{ if eq .Query.Type "PilihanGanda" }}selected{{ end }}>Pilihan Ganda</option>
+          <option value="BenarSalah" {{ if eq .Query.Type "BenarSalah" }}selected{{ end }}>Benar / Salah</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit"
+          class="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-white hover:text-black hover:border hover:border-black transition-colors font-semibold">
+          Apply Filter
+        </button>
+      </div>
+    </form>
+
 
     {{ if .Question }}
     <article class="border border-gray-200 rounded-lg p-8 mb-8">

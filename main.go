@@ -146,9 +146,26 @@ func main() {
 	})
 
 	r.GET("/f", func(c *gin.Context) {
-		query := "SELECT id, question, answer, category, type, explanation FROM skd_writeup WHERE is_public = 1 ORDER BY RANDOM() LIMIT 1"
+		// Ambil query parameter dari URL
+		category := c.Query("category")
+		qType := c.Query("type")
 
-		row := db.QueryRow(query)
+		// Bangun query SQL dinamis
+		query := "SELECT id, question, answer, category, type, explanation FROM skd_writeup WHERE is_public = 1"
+		var args []interface{}
+		if category != "" {
+			query += " AND category = ?"
+			args = append(args, category)
+		}
+		if qType != "" {
+			query += " AND type = ?"
+			args = append(args, qType)
+		}
+
+		query += " ORDER BY RANDOM() LIMIT 1"
+
+		// Jalankan query
+		row := db.QueryRow(query, args...)
 
 		var rawExplanation string
 		var q Question
@@ -163,10 +180,15 @@ func main() {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
+
 		q.Explanation = parseMarkdown(rawExplanation)
 
 		c.HTML(http.StatusOK, "flash.html", gin.H{
 			"Question": q,
+			"Query": gin.H{
+				"Category": category,
+				"Type":     qType,
+			},
 		})
 	})
 
