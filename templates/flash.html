@@ -84,27 +84,33 @@
       </header>
 
       <section>
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6 leading-relaxed">
+        <!-- Question -->
+        <div class="prose prose-gray max-w-none mb-6">
           {{ .Question.Question }}
-        </h2>
+        </div>
 
+        <!-- Toggle Button -->
         <button id="toggleAnswer"
           class="block mx-auto sm:mx-0 bg-gray-900 text-white px-6 py-3 rounded-md hover:bg-gray-800 transition-colors font-semibold"
           type="button" aria-expanded="false" aria-controls="answerContainer">
           Show Answer
         </button>
 
+        <!-- Answer & Explanation Container -->
         <div id="answerContainer" class="hidden mt-6 max-w-none">
-          <div class="bg-green-100 p-6 rounded border border-green-300 shadow-inner">
-            <p class="text-green-900 text-lg font-medium">{{ .Question.Answer }}</p>
+          <!-- Answer -->
+          <div class="prose prose-green max-w-none bg-green-100 p-6 rounded border border-green-300 shadow-inner">
+            {{ .Question.Answer }}
           </div>
 
-          <div class="mt-6 prose prose-gray max-w-none">
+          <!-- Explanation -->
+          <div class="prose prose-gray max-w-none mt-6">
             <h3 class="font-semibold mb-3">Explanation:</h3>
             {{ .Question.Explanation }}
           </div>
         </div>
       </section>
+
     </article>
     {{ else }}
     <section class="border border-red-300 rounded-lg p-6 bg-white shadow-md text-center">

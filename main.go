@@ -3,15 +3,18 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/yuin/goldmark"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 )
 
@@ -68,7 +71,37 @@ func main() {
 		c.File("./public/timeline.html")
 	})
 
-	db, err := sql.Open("sqlite", "./data/skd_database.db")
+	// Load .env file if present
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using environment variables only")
+	}
+
+	// Define and parse the mode flag
+	mode := flag.String("mode", "dev", "Application mode: dev or prod")
+	flag.Parse()
+
+	// Choose DB path based on mode
+	var dbPath string
+	switch *mode {
+	case "prod":
+		dbPath = os.Getenv("PROD_DB_PATH")
+		if dbPath == "" {
+			dbPath = "./data/prod_database.db"
+		}
+	case "dev":
+		dbPath = os.Getenv("DEV_DB_PATH")
+		if dbPath == "" {
+			dbPath = "./data/dev_database.db"
+		}
+	default:
+		log.Fatalf("Unknown mode: %s", *mode)
+	}
+
+	fmt.Printf("Running in %s mode. Using DB: %s\n", *mode, dbPath)
+
+	// Open the database
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -151,7 +184,7 @@ func main() {
 		qType := c.Query("type")
 
 		// Bangun query SQL dinamis
-		query := "SELECT id, question, answer, category, type, explanation FROM skd_writeup WHERE is_public = 1"
+		query := "SELECT id, question, answer, explanation, category, type FROM skd_writeup WHERE is_public = 1"
 		var args []interface{}
 		if category != "" {
 			query += " AND category = ?"
@@ -167,9 +200,9 @@ func main() {
 		// Jalankan query
 		row := db.QueryRow(query, args...)
 
-		var rawExplanation string
+		var rawExplanation, rawQuestion, rawAnswer string
 		var q Question
-		err := row.Scan(&q.ID, &q.Question, &q.Answer, &q.Category, &q.Type, &rawExplanation)
+		err := row.Scan(&q.ID, &rawQuestion, &rawAnswer, &rawExplanation, &q.Category, &q.Type)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.HTML(http.StatusOK, "flash.html", gin.H{
@@ -181,8 +214,12 @@ func main() {
 			return
 		}
 
+		// Parse markdown for question, answer, and explanation
+		q.Question = parseMarkdown(rawQuestion)
+		q.Answer = parseMarkdown(rawAnswer)
 		q.Explanation = parseMarkdown(rawExplanation)
 
+		// Render template
 		c.HTML(http.StatusOK, "flash.html", gin.H{
 			"Question": q,
 			"Query": gin.H{
