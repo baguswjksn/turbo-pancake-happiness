@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/yuin/goldmark"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,19 @@ type Question struct {
 	Type        string
 	Explanation template.HTML
 	Hash_ID     string
+}
+
+type WriteupInsertRequest struct {
+	Question     string `json:"question" binding:"required"`
+	Category     string `json:"category" binding:"required,oneof=TIU TWK TKP"`
+	Answer       string `json:"answer" binding:"required"`
+	WrongAnswer1 string `json:"wrong_answer_1" binding:"required"`
+	WrongAnswer2 string `json:"wrong_answer_2" binding:"required"`
+	WrongAnswer3 string `json:"wrong_answer_3" binding:"required"`
+	Explanation  string `json:"explanation"`
+	Type         string `json:"type" binding:"required"`
+	IsPublic     string `json:"is_public"` // e.g. "1" or "0"
+	AIgen        string `json:"ai_gen"`    // e.g. "1" atau "0"
 }
 
 func parseMarkdown(md string) template.HTML {
@@ -69,6 +83,10 @@ func main() {
 
 	r.GET("/tl", func(c *gin.Context) {
 		c.File("./public/timeline.html")
+	})
+
+	r.GET("/i", func(c *gin.Context) {
+		c.File("./public/insert_question.html")
 	})
 
 	// Load .env file if present
@@ -257,6 +275,37 @@ func main() {
 
 		c.HTML(http.StatusOK, "question.html", gin.H{
 			"Question": q,
+		})
+	})
+
+	r.POST("/q", func(c *gin.Context) {
+		var req WriteupInsertRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Generate hash_id misal UUID
+		hashID := uuid.New().String()
+
+		query := `
+		INSERT INTO skd_writeup 
+		(question, category, answer, wrong_answer_1, wrong_answer_2, wrong_answer_3, explanation, type, is_public, ai_gen, hash_id, created_at, updated_at) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	`
+
+		_, err := db.Exec(query,
+			req.Question, req.Category, req.Answer, req.WrongAnswer1, req.WrongAnswer2, req.WrongAnswer3,
+			req.Explanation, req.Type, req.IsPublic, req.AIgen, hashID,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "Writeup created successfully",
+			"hash_id": hashID,
 		})
 	})
 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Insert Writeup Question</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; max-width: 700px; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    input[type="text"], select, textarea {
+      width: 100%; padding: 0.5rem; margin-top: 0.3rem; font-size: 1rem;
+      box-sizing: border-box;
+    }
+    textarea { height: 80px; font-family: monospace; }
+    button {
+      margin-top: 1.5rem; padding: 0.7rem 1.5rem; font-size: 1rem;
+      background: #007bff; border: none; color: white; cursor: pointer;
+      border-radius: 4px;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .message {
+      margin-top: 1rem; font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Insert Writeup Question</h1>
+
+<form id="writeupForm">
+  <label for="question">Question</label>
+  <textarea id="question" name="question" required></textarea>
+
+  <label for="category">Category</label>
+  <select id="category" name="category" required>
+    <option value="">-- Select Category --</option>
+    <option value="TIU">TIU</option>
+    <option value="TWK">TWK</option>
+    <option value="TKP">TKP</option>
+  </select>
+
+  <label for="type">Type</label>
+  <select id="type" name="type" required>
+    <option value="">-- Select Type --</option>
+    <option value="Deret Angka">Deret Angka</option>
+    <option value="Verbal Analogi">Verbal Analogi</option>
+    <option value="Silogisme">Silogisme</option>
+    <option value="Analitis">Analitis</option>
+    <option value="Operasi Bilangan">Operasi Bilangan</option>
+    <option value="Perbandingan">Perbandingan</option>
+    <option value="Jarak Kecepatan Waktu">Jarak Kecepatan Waktu</option>
+    <option value="Figural Gambar">Figural Gambar</option>
+    <option value="Pancasila">Pancasila</option>
+    <option value="Bhineka Tunggal IKa">Bhineka Tunggal IKa</option>
+    <option value="NKRI">NKRI</option>
+    <option value="UUD 1945">UUD 1945</option>
+    <option value="Integritas">Integritas</option>
+    <option value="Nasionalisme">Nasionalisme</option>
+    <option value="Bela Negara">Bela Negara</option>
+    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+    <option value="Pelayanan Public">Pelayanan Public</option>
+    <option value="Profesionalisme">Profesionalisme</option>
+    <option value="Jejaring kerja">Jejaring kerja</option>
+    <option value="Sosial Budaya">Sosial Budaya</option>
+    <option value="Teknologi Informasi dan KOmunikasi">Teknologi Informasi dan KOmunikasi</option>
+    <option value="Anti Radikalisme">Anti Radikalisme</option>
+  </select>
+
+  <label for="answer">Answer (Markdown allowed)</label>
+  <textarea id="answer" name="answer" required></textarea>
+
+  <label for="wrong_answer_1">Wrong Answer 1 (Markdown allowed)</label>
+  <textarea id="wrong_answer_1" name="wrong_answer_1" required></textarea>
+
+  <label for="wrong_answer_2">Wrong Answer 2 (Markdown allowed)</label>
+  <textarea id="wrong_answer_2" name="wrong_answer_2" required></textarea>
+
+  <label for="wrong_answer_3">Wrong Answer 3 (Markdown allowed)</label>
+  <textarea id="wrong_answer_3" name="wrong_answer_3" required></textarea>
+
+  <label for="explanation">Explanation (Markdown allowed)</label>
+  <textarea id="explanation" name="explanation"></textarea>
+
+  <label for="is_public">Is Public?</label>
+  <select id="is_public" name="is_public" required>
+    <option value="1">Yes</option>
+    <option value="0" selected>No</option>
+  </select>
+
+  <label for="ai_gen">AI Generated?</label>
+  <select id="ai_gen" name="ai_gen" required>
+    <option value="1" selected>Yes</option>
+    <option value="0">No</option>
+  </select>
+
+  <button type="submit">Submit</button>
+</form>
+
+<div class="message" id="message"></div>
+
+<script>
+  const form = document.getElementById('writeupForm');
+  const message = document.getElementById('message');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    message.textContent = '';
+
+    const data = {
+      question: form.question.value.trim(),
+      category: form.category.value,
+      type: form.type.value,
+      answer: form.answer.value.trim(),
+      wrong_answer_1: form.wrong_answer_1.value.trim(),
+      wrong_answer_2: form.wrong_answer_2.value.trim(),
+      wrong_answer_3: form.wrong_answer_3.value.trim(),
+      explanation: form.explanation.value.trim(),
+      is_public: form.is_public.value,
+      ai_gen: form.ai_gen.value,
+    };
+
+    try {
+      const response = await fetch('/q', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        message.style.color = 'green';
+        message.textContent = `Success! Writeup created with hash_id: ${result.hash_id}`;
+        form.reset();
+      } else {
+        message.style.color = 'red';
+        message.textContent = `Error: ${result.error || 'Unknown error'}`;
+      }
+    } catch (err) {
+      message.style.color = 'red';
+      message.textContent = 'Request failed. ' + err.message;
+    }
+  });
+</script>
+
+</body>
+</html>
