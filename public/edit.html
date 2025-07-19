@@ -1,9 +1,9 @@
+<!-- Add this as a separate file: edit.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Insert Writeup Question</title>
+  <title>Edit Writeup</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 2rem; max-width: 700px; }
     label { display: block; margin-top: 1rem; font-weight: bold; }
@@ -28,9 +28,11 @@
 </head>
 <body>
 
-<h1>Insert Writeup Question</h1>
+<h1>Edit Writeup</h1>
 
-<form id="writeupForm">
+<form id="editForm">
+  <input type="hidden" id="hash_id" name="hash_id" />
+
   <label for="question">Question</label>
   <textarea id="question" name="question" required></textarea>
 
@@ -69,20 +71,20 @@
     <option value="Anti Radikalisme">Anti Radikalisme</option>
   </select>
 
-  <label for="answer">Answer (Markdown allowed)</label>
-  <textarea id="answer" name="answer" required>n</textarea>
+  <label for="answer">Answer</label>
+  <textarea id="answer" name="answer" required></textarea>
 
-  <label for="wrong_answer_1">Wrong Answer 1 (Markdown allowed)</label>
-  <textarea id="wrong_answer_1" name="wrong_answer_1" required>n</textarea>
+  <label for="wrong_answer_1">Wrong Answer 1</label>
+  <textarea id="wrong_answer_1" name="wrong_answer_1" required></textarea>
 
-  <label for="wrong_answer_2">Wrong Answer 2 (Markdown allowed)</label>
-  <textarea id="wrong_answer_2" name="wrong_answer_2" required>n</textarea>
+  <label for="wrong_answer_2">Wrong Answer 2</label>
+  <textarea id="wrong_answer_2" name="wrong_answer_2" required></textarea>
 
-  <label for="wrong_answer_3">Wrong Answer 3 (Markdown allowed)</label>
-  <textarea id="wrong_answer_3" name="wrong_answer_3" required>n</textarea>
+  <label for="wrong_answer_3">Wrong Answer 3</label>
+  <textarea id="wrong_answer_3" name="wrong_answer_3" required></textarea>
 
-  <label for="explanation">Explanation (Markdown allowed)</label>
-  <textarea id="explanation" name="explanation">n</textarea>
+  <label for="explanation">Explanation</label>
+  <textarea id="explanation" name="explanation"></textarea>
 
   <label for="is_public">Is Public?</label>
   <select id="is_public" name="is_public" required>
@@ -96,19 +98,49 @@
     <option value="0" selected>No</option>
   </select>
 
-  <button type="submit">Submit</button>
+  <button type="submit">Update</button>
+
+  <button id="deleteBtn" type="button" style="background: red; margin-top: 1rem;">Delete</button>
+
 </form>
+
 
 <div class="message" id="message"></div>
 
 <script>
-  const form = document.getElementById('writeupForm');
+  const form = document.getElementById('editForm');
   const message = document.getElementById('message');
+
+  // Get hash_id from URL
+  const params = new URLSearchParams(window.location.search);
+  const hashID = params.get('hash_id');
+
+  async function loadData() {
+    try {
+      const res = await fetch(`/e/q/${hashID}`);
+      if (!res.ok) throw new Error('Writeup not found');
+      const data = await res.json();
+
+      // populate form fields
+      form.hash_id.value = hashID;
+      form.question.value = data.question;
+      form.category.value = data.category;
+      form.type.value = data.type;
+      form.answer.value = data.answer;
+      form.wrong_answer_1.value = data.wrong_answer_1;
+      form.wrong_answer_2.value = data.wrong_answer_2;
+      form.wrong_answer_3.value = data.wrong_answer_3;
+      form.explanation.value = data.explanation;
+      form.is_public.value = data.is_public;
+      form.ai_gen.value = data.ai_gen;
+    } catch (err) {
+      message.style.color = 'red';
+      message.textContent = 'Error loading writeup: ' + err.message;
+    }
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    message.textContent = '';
-
     const data = {
       question: form.question.value.trim(),
       category: form.category.value,
@@ -123,28 +155,55 @@
     };
 
     try {
-      const response = await fetch('/q', {
-        method: 'POST',
+      const res = await fetch(`/e/q/${hashID}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      const result = await res.json();
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (res.ok) {
         message.style.color = 'green';
-        message.textContent = `Success! Writeup created with hash_id: ${result.hash_id}`;
-        form.reset();
+        message.textContent = result.message;
       } else {
         message.style.color = 'red';
-        message.textContent = `Error: ${result.error || 'Unknown error'}`;
+        message.textContent = 'Error: ' + (result.error || 'Unknown error');
       }
     } catch (err) {
       message.style.color = 'red';
-      message.textContent = 'Request failed. ' + err.message;
+      message.textContent = 'Request failed: ' + err.message;
     }
   });
-</script>
 
+  loadData(); // load data on page load
+
+  const deleteBtn = document.getElementById("deleteBtn");
+
+deleteBtn.addEventListener('click', async () => {
+  if (!confirm("Are you sure you want to delete this writeup? This action cannot be undone.")) return;
+
+  try {
+    const res = await fetch(`/q/${hashID}`, { method: 'DELETE' });
+    const result = await res.json();
+
+    if (res.ok) {
+      message.style.color = 'green';
+      message.textContent = result.message;
+
+      // Optional: redirect or disable form
+      form.reset();
+      form.querySelectorAll('input, textarea, select, button').forEach(el => el.disabled = true);
+      deleteBtn.disabled = true;
+    } else {
+      message.style.color = 'red';
+      message.textContent = `Error: ${result.error || 'Unknown error'}`;
+    }
+  } catch (err) {
+    message.style.color = 'red';
+    message.textContent = 'Delete failed: ' + err.message;
+  }
+});
+
+</script>
 </body>
 </html>

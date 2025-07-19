@@ -77,16 +77,12 @@ func main() {
 		c.File("./public/index.html")
 	})
 
-	r.GET("/rtl", func(c *gin.Context) {
-		c.File("./public/rtl.html")
-	})
-
-	r.GET("/tl", func(c *gin.Context) {
-		c.File("./public/timeline.html")
-	})
-
 	r.GET("/i", func(c *gin.Context) {
 		c.File("./public/insert_question.html")
+	})
+
+	r.GET("/e", func(c *gin.Context) {
+		c.File("./public/edit.html")
 	})
 
 	// Load .env file if present
@@ -276,6 +272,76 @@ func main() {
 		c.HTML(http.StatusOK, "question.html", gin.H{
 			"Question": q,
 		})
+	})
+
+	r.GET("/e/q/:hash_id", func(c *gin.Context) {
+		hashID := c.Param("hash_id")
+		var w WriteupInsertRequest
+
+		query := `SELECT question, category, answer, wrong_answer_1, wrong_answer_2, wrong_answer_3, explanation, type, is_public, ai_gen 
+			  FROM skd_writeup WHERE hash_id = ?`
+		err := db.QueryRow(query, hashID).Scan(&w.Question, &w.Category, &w.Answer, &w.WrongAnswer1, &w.WrongAnswer2, &w.WrongAnswer3,
+			&w.Explanation, &w.Type, &w.IsPublic, &w.AIgen)
+
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Writeup not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, w)
+	})
+
+	r.DELETE("/q/:hash_id", func(c *gin.Context) {
+		hashID := c.Param("hash_id")
+
+		query := `DELETE FROM skd_writeup WHERE hash_id = ?`
+		res, err := db.Exec(query, hashID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		rowsAffected, _ := res.RowsAffected()
+		if rowsAffected == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Writeup not found"})
+			return
+		}
+
+		// ✅ This should be the ONLY output to client
+		c.JSON(http.StatusOK, gin.H{"message": "Writeup deleted successfully"})
+	})
+
+	r.PUT("/e/q/:hash_id", func(c *gin.Context) {
+		hashID := c.Param("hash_id")
+		var req WriteupInsertRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		query := `
+		UPDATE skd_writeup
+		SET question = ?, category = ?, answer = ?, wrong_answer_1 = ?, wrong_answer_2 = ?, wrong_answer_3 = ?,
+			explanation = ?, type = ?, is_public = ?, ai_gen = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE hash_id = ?
+	`
+
+		res, err := db.Exec(query, req.Question, req.Category, req.Answer, req.WrongAnswer1, req.WrongAnswer2, req.WrongAnswer3,
+			req.Explanation, req.Type, req.IsPublic, req.AIgen, hashID)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		rowsAffected, _ := res.RowsAffected()
+		if rowsAffected == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Writeup not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Writeup updated successfully"})
 	})
 
 	r.POST("/q", func(c *gin.Context) {
